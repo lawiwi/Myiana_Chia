@@ -1,0 +1,15 @@
+{% extends "Base/base.html" %}
+{% block content %}
+<div class="content-card pastel-sky">
+  <h2>Detalles del emprendimiento</h2>
+  <ul>
+    <li><strong>Nombre:</strong> {{ e.nombre_emprendimiento }}</li>
+    <li><strong>NIT:</strong> {{ e.nit }}</li>
+    <li><strong>Zona:</strong> {{ e.zona }}</li>
+    <li><strong>Ubicación:</strong> {{ e.ubicacion }}</li>
+    <li><strong>Plan:</strong> {{ e.plan }}</li>
+    <li><strong>Clasificación:</strong> {{ e.clasificacion }}</li>
+  </ul>
+  <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">Volver</a>
+</div>
+{% endblock %}

@@ -1,0 +1,224 @@
+{% extends 'Base/base.html' %}
+{% block title %}Dashboard Explorador{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='Estilos/login.css') }}">
+
+<div class="dashboard">
+  <!-- ===== SIDEBAR IZQUIERDA ===== -->
+  <div class="sidebar">
+    <div class="brand">
+      <img src="{{ url_for('static', filename='Imagenes/LogoSencillo.png') }}" alt="Logo">
+      <h2>Panel Explorador</h2>
+      <p class="welcome-text">Bienvenido, {{ user.username }}</p>
+    </div>
+
+    <a href="#" class="sidebar-btn active" data-section="descubrir">Descubrir lugares</a>
+    <a href="#" class="sidebar-btn" data-section="favoritos">Mis favoritos</a>
+    <a href="#" class="sidebar-btn" data-section="actividad">Actividad</a>
+    <a href="#" class="sidebar-btn" data-section="perfil">Mi perfil</a>
+    <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+  </div>
+
+  <!-- ===== CONTENIDO PRINCIPAL ===== -->
+  <div class="main-content">
+    <h1 id="section-title">Descubrir lugares</h1>
+
+  <!-- === SECCIÓN DESCUBRIR === -->
+  <div id="descubrir" class="content-section active">
+    <div class="content-card pastel-sky">
+      <h1 class="main-title">🧭 Buscador de Myiana</h1>
+      <h3 class="subtitle">¿Qué te gustaría descubrir hoy?</h3>
+      <p>Elige una categoría para recibir una recomendación especial.</p>
+
+      <!-- Botones de categorías -->
+      <div class="category-buttons">
+        <button class="btn btn-primary" onclick="recomendarLugar('comida')">🍽️ Comida</button>
+        <button class="btn btn-primary" onclick="recomendarLugar('naturaleza')">🌳 Naturaleza</button>
+        <button class="btn btn-primary" onclick="recomendarLugar('cultura')">🎨 Arte y Cultura</button>
+        <button class="btn btn-primary" onclick="recomendarLugar('deporte')">⚽ Deportes</button>
+        <button class="btn btn-primary" onclick="recomendarLugar('compras')">🛍️ Compras</button>
+        <button class="btn btn-primary" onclick="recomendarLugar('tecnologia')">💻 Tecnología</button>
+      </div>
+
+      <!-- Resultado aleatorio -->
+      <div id="recomendacion-aleatoria" class="grid-lugares" style="margin-top: 25px;"></div>
+    </div>
+
+  </div>
+
+    <!-- === SECCIÓN FAVORITOS (actualizada) === -->
+    <div id="favoritos" class="content-section">
+      <div class="content-card pastel-lavender">
+        <h2>Mis lugares favoritos</h2>
+
+        {% if favoritos %}
+          <table class="data-table wide">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Guardado el</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for fav in favoritos %}
+              <tr>
+                <td>{{ fav.empresa.nombre_emprendimiento  }}</td>
+                <td>{{ fav.empresa.clasificacion }}</td>
+                <td>{{ fav.fecha_guardado.strftime('%d/%m/%Y') }}</td>
+                <td>
+                  <a href="{{ fav.empresa.url or '#' }}" method="post" style="display:inline;">
+                    <button type="submit" class="btn small btn-secondary">Visitar</button>
+                  </a>
+                <form action="{{ url_for('eliminar_favorito', fav_id=fav.id) }}" method="post" style="display:inline;">
+                  <button type="submit" class="btn small btn-secondary">Eliminar</button>
+                </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No tienes lugares guardados como favoritos todavía.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- === SECCIÓN ACTIVIDAD === -->
+    <div id="actividad" class="content-section">
+      <div class="content-card pastel-green">
+        <h2>Historial de actividad</h2>
+        <p>Consulta tus visitas recientes y el tiempo invertido explorando lugares de Chía.</p>
+        <canvas id="graficoActividad"></canvas>
+      </div>
+
+      <div class="content-card pastel-sun">
+        <h3>Resumen de la semana</h3>
+        <ul>
+          <li><strong>Visitas totales:</strong> 14</li>
+          <li><strong>Lugar más visitado:</strong> Centro Chía</li>
+          <li><strong>Día con más actividad:</strong> Sábado</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- === SECCIÓN PERFIL === -->
+    <div id="perfil" class="content-section">
+      <div class="content-card pastel-blue">
+        <h2>Mi perfil</h2>
+        <p><strong>Nombre:</strong> {{ user.username }}</p>
+        <p><strong>Correo:</strong> {{ user.email }}</p>
+        <p><strong>Miembro desde:</strong> {{ user.fecha_registro }}</p>
+        <button class="btn btn-primary">Editar perfil</button>
+      </div>
+
+      <div class="content-card pastel-pink">
+        <h3>Preferencias</h3>
+        <p>Selecciona tus intereses para obtener mejores recomendaciones:</p>
+        <form>
+          <label><input type="checkbox" checked> Gastronomía</label><br>
+          <label><input type="checkbox"> Entretenimiento</label><br>
+          <label><input type="checkbox"> Cultura</label><br>
+          <label><input type="checkbox"> Naturaleza</label><br>
+          <button class="btn btn-primary" type="submit">Guardar cambios</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- === SCRIPT PARA CAMBIAR SECCIONES === -->
+<script>
+  document.querySelectorAll('.sidebar-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const section = btn.dataset.section;
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      document.getElementById(section).classList.add('active');
+
+      const title = document.getElementById('section-title');
+      if (section === 'descubrir') title.textContent = 'Descubrir lugares';
+      else if (section === 'favoritos') title.textContent = 'Mis lugares favoritos';
+      else if (section === 'actividad') title.textContent = 'Mi actividad';
+      else title.textContent = 'Perfil de explorador';
+    });
+  });
+</script>
+
+<!-- === CHART.JS PARA LA GRÁFICA DE ACTIVIDAD === -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('graficoActividad');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        datasets: [{
+          label: 'Visitas por día',
+          data: [2, 3, 1, 4, 2, 5, 3],
+          borderWidth: 2,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+</script>
+
+<!-- === SCRIPT DE RECOMENDACIONES ALEATORIAS === -->
+<script>
+  const exploradorId = {{ explorador.id }}; // Asumiendo que lo pasas desde Flask
+
+  // --- Cargar recomendaciones personalizadas ---
+  fetch(`/recomendaciones/${exploradorId}`)
+    .then(res => res.json())
+    .then(data => {
+      const contenedor = document.getElementById('recomendaciones-personalizadas');
+      if (!data.length) {
+        contenedor.innerHTML = `<p>No hay recomendaciones personalizadas aún. ¡Explora más lugares!</p>`;
+        return;
+      }
+
+      contenedor.innerHTML = data.map(lugar => `
+        <div class="store-card">
+          <img src="${lugar.imagen}" alt="${lugar.nombre}" class="img-uniforme">
+          <h3>${lugar.nombre}</h3>
+          <p>${lugar.descripcion}</p>
+          <a href="${lugar.url}" target="_blank" class="btn btn-primary">Visitar</a>
+        </div>
+      `).join('');
+    });
+
+  // --- Recomendación por categoría ---
+  function recomendarLugar(categoria) {
+    fetch(`/recomendar/${categoria}`)
+      .then(res => res.json())
+      .then(lugar => {
+        const contenedor = document.getElementById('recomendacion-aleatoria');
+        if (lugar.error) {
+          contenedor.innerHTML = `<p>No hay lugares en esta categoría aún.</p>`;
+          return;
+        }
+        contenedor.innerHTML = `
+          <div class="store-card">
+            <img src="${lugar.imagen}" alt="${lugar.nombre}" class="img-uniforme">
+            <h3>${lugar.nombre}</h3>
+            <p>${lugar.descripcion}</p>
+            <a href="${lugar.url}" target="_blank" class="btn btn-primary">Visitar</a>
+          </div>
+        `;
+      });
+  }
+</script>
+{% endblock %}

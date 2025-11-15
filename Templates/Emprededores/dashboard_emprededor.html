@@ -1,0 +1,447 @@
+{% extends 'Base/base.html' %}
+{% block title %}Panel del Emprendedor{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='Estilos/login.css') }}">
+
+<div class="dashboard">
+  <div class="sidebar">
+    <div class="brand">
+      <img src="{{ url_for('static', filename='Imagenes/logoazul.png') }}" alt="Logo">
+      <h2>Panel Emprendedor</h2>
+      <p class="welcome-text">Bienvenido, {{ session.get('username', 'Emprendedor') }}</p>
+    </div>
+
+    <a href="#" class="sidebar-btn active" data-section="inicio">Inicio</a>
+    <a href="#" class="sidebar-btn" data-section="mis_datos">Mi Emprendimiento</a>
+    <a href="#" class="sidebar-btn" data-section="favoritos">Favoritos</a>
+    <a href="#" class="sidebar-btn" data-section="predicciones">Predicciones</a>
+    <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+  </div>
+
+  <div class="main-content">
+    <h1 id="section-title">Resumen General</h1>
+
+    <!-- === SECCIÓN INICIO === -->
+    <div id="inicio" class="content-section active">
+      <div class="chart-card">
+        <h2>Visitas Semanales Estimadas</h2>
+        <canvas id="chartVisitasSemana"></canvas>
+      </div>
+      
+      <div class="chart-card">
+        <h2>¡Lluvia de corazones!</h2>
+        <p>Exploradores que han guardado tu emprendimiento:</p>
+        <div class="favoritos-count">
+          <span>{{ favoritos_count }}</span>
+        </div>
+      </div>
+
+      <div class="chart-card" style="margin-top:20px;">
+        <h2>Recomendaciones para tu Empresa</h2>
+        <ul id="listaRecomendaciones" class="recomendaciones-list"></ul>
+      </div>
+    </div>
+
+    <!-- === SECCIÓN DATOS EMPRENDIMIENTO === -->
+    <div id="mis_datos" class="content-section">
+      <div class="chart-card">
+        <h2>Mi Emprendimiento</h2>
+        <table id="tablaEditar" class="table table-striped" style="width:100%; margin-top:15px;">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>NIT</th>
+              <th>Ubicación</th>
+              <th>Zona</th>
+              <th>Plan</th>
+              <th>Clasificación</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ empresa.nombre_emprendimiento }}</td>
+              <td>{{ empresa.nit }}</td>
+              <td>{{ empresa.ubicacion or '-' }}</td>
+              <td>{{ empresa.zona or '-' }}</td>
+              <td>{{ empresa.plan or '-' }}</td>
+              <td>{{ empresa.clasificacion or '-' }}</td>
+              <td>
+                <button class="btn btn-warning btn-sm"
+                        onclick="abrirModalEditar('{{ empresa.id }}', '{{ empresa.nombre_emprendimiento }}', '{{ empresa.nit }}', '{{ empresa.zona }}', '{{ empresa.ubicacion }}', '{{ empresa.plan }}', '{{ empresa.clasificacion }}')">
+                        Editar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- === SECCIÓN FAVORITOS === -->
+    <div id="favoritos" class="content-section">
+      <div class="chart-card">
+        <h2>¡Lluvia de corazones!</h2>
+        <p>Exploradores que han guardado tu emprendimiento:</p>
+        <div class="favoritos-count">
+          <span>{{ favoritos_count }}</span>
+        </div>
+      </div>
+
+      <div class="chart-card pastel-sky" style="margin-top: 20px;">
+        <h3>Auditoría de Favoritos</h3>
+        <p>Historial de usuarios que agregaron o eliminaron tu emprendimiento de favoritos.</p>
+
+        <table id="tablaAuditoria" class="table table-striped" style="width:100%; margin-top:15px;">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Acción</th>
+              <th>Detalles</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Se llena dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- === SECCIÓN PREDICCIONES === -->
+    <div id="predicciones" class="content-section">
+      <div class="chart-card">
+        <h2>Posibles visitas proxima semana!</h2>
+        <canvas id="chartPredicciones"></canvas>
+      </div>
+
+      <div class="chart-card pastel-blue" style="margin-top:20px;">
+        <h3>Evolución por Día de la Semana</h3>
+        <label for="filtroDia">Selecciona un día:</label>
+        <select id="filtroDia" class="form-select" style="margin: 10px 0;">
+          <option value="Lunes">Lunes</option>
+          <option value="Martes">Martes</option>
+          <option value="Miércoles">Miércoles</option>
+          <option value="Jueves">Jueves</option>
+          <option value="Viernes">Viernes</option>
+          <option value="Sábado">Sábado</option>
+          <option value="Domingo">Domingo</option>
+        </select>
+        <canvas id="chartDia"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === SCRIPTS === -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // === GRÁFICA DE ACCIONES ===
+  (() => {
+    const ctx = document.getElementById('chartAcciones');
+    const labels = {{ acciones_labels|tojson }};
+    const values = {{ acciones_values|tojson }};
+    const maxY = Math.max(...values);
+    const suggestedMax = maxY + maxY * 0.2;
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Acciones realizadas',
+          data: values,
+          backgroundColor: ['#7BA1CD', '#ffb703', '#fb8500']
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true, suggestedMax: suggestedMax }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  })();
+
+  // === CAMBIO DE SECCIONES ===
+  document.querySelectorAll('.sidebar-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const section = btn.dataset.section;
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      document.getElementById(section).classList.add('active');
+
+      const title = document.getElementById('section-title');
+      if (section === 'favoritos') title.textContent = 'Favoritos de tu Empresa';
+      else if (section === 'mis_datos') title.textContent = 'Perfil de tu Empresa';
+      else if (section === 'predicciones') title.textContent = 'Predicciones de Visitas';
+      else title.textContent = 'Resumen General';
+    });
+  });
+
+// === CARGAR AUDITORÍA DE FAVORITOS ===
+async function cargarAuditoriaFavoritos(empresaId) {
+  const tablaBody = document.querySelector('#tablaAuditoria tbody');
+  tablaBody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+
+  const response = await fetch(`/api/auditoria_favoritos/${empresaId}`);
+  const data = await response.json();
+
+  if (!data.length) {
+    tablaBody.innerHTML = '<tr><td colspan="4">No hay registros aún.</td></tr>';
+    return;
+  }
+
+  tablaBody.innerHTML = '';
+  data.forEach(log => {
+    const fila = `
+      <tr>
+        <td>${log.usuario}</td>
+        <td>${log.accion}</td>
+        <td>${log.detalles}</td>
+        <td>${log.fecha}</td>
+      </tr>`;
+    tablaBody.insertAdjacentHTML('beforeend', fila);
+  });
+}
+
+// === Detectar cambio de pestaña ===
+document.querySelectorAll('.sidebar-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const section = btn.dataset.section;
+    if (section === 'favoritos') {
+      const empresaId = {{ empresa.id }};
+      cargarAuditoriaFavoritos(empresaId);
+    }
+  });
+});
+
+</script>
+
+
+<script>
+async function cargarPredicciones(empresaId) {
+  const ctxPred = document.getElementById('chartPredicciones');
+  const response = await fetch(`/api/visitas/${empresaId}`);
+  const data = await response.json();
+
+  new Chart(ctxPred, {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: 'Posibles visitas semanales',
+        data: data.values,
+        borderColor: '#083553',
+        backgroundColor: 'rgba(8,53,83,0.2)',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: '#0b486b'
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true } },
+      plugins: { legend: { display: true } }
+    }
+  });
+}
+
+async function cargarGraficoDia(empresaId, dia) {
+  const ctxDia = document.getElementById('chartDia');
+  const response = await fetch(`/api/visitas_dia/${empresaId}/${dia}`);
+  const data = await response.json();
+
+  if (window.chartDiaInstance) window.chartDiaInstance.destroy();
+
+  window.chartDiaInstance = new Chart(ctxDia, {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: `Visitas (${dia}) últimas 10 semanas`,
+        data: data.values,
+        borderColor: '#0b486b',
+        backgroundColor: 'rgba(11,72,107,0.2)',
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: '#083553'
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true } },
+      plugins: { legend: { display: true } }
+    }
+  });
+}
+
+// === CARGA AUTOMÁTICA AL ENTRAR EN LA SECCIÓN ===
+document.querySelectorAll('.sidebar-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const section = btn.dataset.section;
+    if (section === 'predicciones') {
+      const empresaId = {{ empresa.id }};
+      cargarPredicciones(empresaId);
+      const diaInicial = document.getElementById('filtroDia').value;
+      cargarGraficoDia(empresaId, diaInicial);
+    }
+  });
+});
+
+// === ACTUALIZAR AL CAMBIAR DÍA ===
+document.getElementById('filtroDia').addEventListener('change', function() {
+  const empresaId = {{ empresa.id }};
+  const diaSeleccionado = this.value;
+  cargarGraficoDia(empresaId, diaSeleccionado);
+});
+</script>
+<script>
+  // === GRÁFICA DE VISITAS SEMANALES + RECOMENDACIONES ===
+  (() => {
+    const ctx = document.getElementById('chartVisitasSemana');
+
+    // Simulamos visitas por día (puedes cambiarlo a datos reales luego)
+    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const visitas = dias.map(() => Math.floor(Math.random() * 35) + 10);
+
+    // Gráfica de visitas
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: dias,
+        datasets: [{
+          label: 'Visitas estimadas por día',
+          data: visitas,
+          backgroundColor: 'rgba(123, 161, 205, 0.6)',
+          borderColor: '#0b486b',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        scales: { y: { beginAtZero: true } },
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    // === GENERACIÓN AUTOMÁTICA DE RECOMENDACIONES ===
+    const recomendaciones = [];
+    const promedio = visitas.reduce((a, b) => a + b, 0) / visitas.length;
+    const favoritos = {{ favoritos_count|default(0) }};
+
+    // Reglas sencillas
+    if (visitas[0] < 15) recomendaciones.push("📅 Aplica un descuento 2x1 los lunes para aumentar las visitas.");
+    if (visitas[1] < 15) recomendaciones.push("🎤 Realiza un evento especial el martes para aumentar las visitas.");
+    if (visitas[2] < 15) recomendaciones.push("🎟️ Entrega cupones de descuento para los dias miercoles para aumentar las visitas.");
+    if (visitas[3] < 15) recomendaciones.push("🎊 Jueves de -----! Vuelve un producto especial los jueves con descuento exclusivo ese dia.");
+    if (visitas[4] < 25) recomendaciones.push("🎥 Publica un reel el viernes por la noche para impulsar el fin de semana.");
+    if (visitas[5] < 30 || visitas[6] < 30) recomendaciones.push("🏷️ Ofrece promociones especiales los fines de semana para estudiantes o familias.");
+    if (favoritos < 3) recomendaciones.push("✨ Actualiza la descripción y las imágenes de tu emprendimiento para atraer más favoritos. <a href='#' data-section='mis_datos' class='link-recom'>Ir a Mi Empresa</a>");
+    if (favoritos > 10 && promedio < 25) recomendaciones.push("🚀 Muchos te tienen en favoritos, pero pocos visitan. Lanza una campaña especial para convertir interés en visitas.");
+    if (recomendaciones.length === 0) recomendaciones.push("✅ ¡Excelente desempeño esta semana! Mantén tu estrategia actual.");
+
+    // Mostrar recomendaciones
+    const lista = document.getElementById('listaRecomendaciones');
+    recomendaciones.forEach(r => {
+      const li = document.createElement('li');
+      li.innerHTML = r;
+      lista.appendChild(li);
+    });
+
+    // Permitir redirigir a la pestaña "Mi Empresa" desde la recomendación
+    document.addEventListener('click', e => {
+      if (e.target.classList.contains('link-recom')) {
+        e.preventDefault();
+        document.querySelector("[data-section='mis_datos']").click();
+      }
+    });
+  })();
+</script>
+<style>
+  #tablaAuditoria {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  #tablaAuditoria th, #tablaAuditoria td {
+    padding: 10px;
+    border: 1px solid #ddd;
+  }
+  #tablaAuditoria th {
+    background-color: #0b486b;
+    color: white;
+  }
+  #tablaAuditoria tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+
+  #tablaEditar {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  #tablaAuditoria th, #tablaEditar td {
+    padding: 10px;
+    border: 1px solid #ddd;
+  }
+  #tablaEditar th {
+    background-color: #0b486b;
+    color: white;
+  }
+  #tablaEditar tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  .recomendaciones-list {
+    list-style: none;
+    text-align: left;
+    margin-top: 10px;
+    padding: 0 20px;
+  }
+  .recomendaciones-list li {
+    background: #f5f9ff;
+    border-left: 5px solid #0b486b;
+    margin: 10px 0;
+    padding: 12px 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .recomendaciones-list a {
+    color: #083553;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+  .dashboard { display: flex; }
+  .sidebar {
+    background: #083553;
+    color: white;
+    width: 240px;
+    height: 100vh;
+    padding: 1rem;
+  }
+  .sidebar-btn {
+    display: block;
+    padding: 10px;
+    color: white;
+    text-decoration: none;
+    margin-top: 8px;
+  }
+  .sidebar-btn.active { background-color: #0b486b; border-radius: 6px; }
+  .main-content { flex: 1; padding: 2rem; background: #f5f5f5; }
+
+  .chart-card {
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+
+  .favoritos-count {
+    font-size: 48px;
+    font-weight: bold;
+    color: #0b486b;
+    margin-top: 10px;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'Base/base.html' %}
+{% block title %}Detalles del Explorador{% endblock %}
+
+{% block content %}
+<div class="content-card pastel-blue" style="max-width: 600px; margin: 2rem auto;">
+  <h2>Información del Explorador</h2>
+  <p><strong>Primer Nombre:</strong> {{ explorador.primer_nombre }}</p>
+  <p><strong>Segundo Nombre:</strong> {{ explorador.segundo_nombre or '-' }}</p>
+  <p><strong>Primer Apellido:</strong> {{ explorador.primer_apellido }}</p>
+  <p><strong>Segundo Apellido:</strong> {{ explorador.segundo_apellido or '-' }}</p>
+  <p><strong>Fecha de Nacimiento:</strong> {{ explorador.fecha_nacimiento or '-' }}</p>
+  <p><strong>Teléfono:</strong> {{ explorador.telefono or '-' }}</p>
+  <p><strong>Preferencias:</strong> {{ explorador.preferencias or 'Sin preferencias registradas' }}</p>
+  <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary mt-3">Volver</a>
+</div>
+{% endblock %}

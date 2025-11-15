@@ -1,0 +1,465 @@
+{% block title %}Categoría: {{ categoria }}{% endblock %}
+{% block content %}
+<head>
+  <script src="//code.jivosite.com/widget/2HA99NJkUt" async></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='Estilos/estiloschia.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<script>
+  // Evita mostrar contenido almacenado en el historial al retroceder
+  window.addEventListener("pageshow", function (event) {
+      if (event.persisted || (window.performance && window.performance.getEntriesByType("navigation")[0].type === "back_forward")) {
+      window.location.reload();
+      }
+  });
+</script>
+
+<!-- CONTENEDOR PRINCIPAL CON CLASE DE CATEGORÍA -->
+<div class="pagina-categoria categoria-{{ categoria|lower }}">
+
+<!-- HEADER -->
+<header class="site-header" role="banner" id="site-header">
+  <div class="brand">
+      <a href="{{ url_for('chiaentre') }}" aria-label="Inicio">
+          <img src="{{ url_for('static', filename='Imagenes/LogoSencillo.png') }}" alt="Logo Myiana">
+      </a>
+      <div class="title">Myiana <span style="color:#f59e0b">Chía</span></div>
+  </div>
+
+  <nav class="nav-actions" role="navigation" aria-label="Principal">
+    {% if username %}
+        {% if role == 'Administrador' %}
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-ghost" title="Ir al panel">
+            <i class="fas fa-user-circle"></i> Hola, {{ username }}
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-ghost">Cerrar sesión</a>
+        {% elif role == 'Emprendedor' %}
+        <a href="{{ url_for('emprendedor_dashboard') }}" class="btn btn-ghost" title="Ir al panel">
+            <i class="fas fa-user-circle"></i> Hola, {{ username }}
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-ghost">Cerrar sesión</a>
+        {% elif role == 'Explorador' %}
+        <a href="{{ url_for('explorador_dashboard') }}" class="btn btn-ghost" title="Ir al panel">
+            <i class="fas fa-user-circle"></i> Hola, {{ username }}
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-ghost">Cerrar sesión</a>
+        {% endif %}
+    {% else %}
+        <a href="/BotonLog" class="btn btn-ghost" title="Iniciar sesión">
+        <i class="fas fa-user-circle"></i> Iniciar sesión
+        </a>
+    {% endif %}
+
+    <a href="https://www.canva.com/design/DAGymtCwjgs/QwDdKz6dOH345ED6543CPA/view?utm_content=DAGymtCwjgs&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=ha273b541e8"
+        class="btn btn-primary" target="_blank" rel="noopener">
+        <i class="fas fa-star"></i> Conoce Nuestros Planes Emprendedor!
+    </a>
+  </nav>
+</header>
+
+<!-- PORTADA -->
+<section class="hero-banner">
+  <img src="{{ url_for('static', filename='Imagenes/portada_' ~ categoria|lower ~ '.jpg') }}"
+       alt="Portada {{ categoria }}" class="hero-img">
+</section>
+
+<!-- INTRO -->
+<section class="intro-section">
+  <div class="container">
+    <p>Aquí encontrarás emprendimientos de la categoría <strong>{{ categoria }}</strong>. Explora por zona, rango de precios o busca alfabéticamente. Haz click en una tarjeta para visitar su ficha.</p>
+  </div>
+</section>
+
+<!-- FILTROS -->
+<section class="filtros-section">
+  <div class="container filtros">
+    <select id="filtroZona">
+      <option value="">Filtrar por sector</option>
+      <option value="Centro">Centro</option>
+      <option value="El Cerrito">El Cerrito</option>
+      <option value="Delicias">Delicias</option>
+      <option value="Campin">Campín</option>
+      <option value="Santa Rita">Santa Rita</option>
+      <option value="Tres esquinas">Tres esquinas</option>
+      <option value="Rio Frio">Río Frío</option>
+      <option value="El Misterio">El Misterio</option>
+      <option value="La Estacion">La Estación</option>
+      <option value="Fagua">Fagua</option>
+      <option value="Yerbabuena ">Yerbabuena </option>
+      <option value="Fonquetá ">Fonquetá</option>
+      <option value="Bojacá">Bojacá</option>
+    </select>
+
+    <select id="filtroPrecio">
+      <option value="">Rango de precios</option>
+      <option value="$">$ 10.000 - $50.000 Económico</option>
+      <option value="$$">$$ 20.000 - $80.000 Medio</option>
+      <option value="$$$">$$$ 50.000 - $200.000 Alto</option>
+    </select>
+
+    <select id="filtroAZ">
+      <option value="">Ordenar</option>
+      <option value="asc">A → Z</option>
+      <option value="desc">Z → A</option>
+    </select>
+  </div>
+</section>
+
+<!-- LISTA DE TARJETAS -->
+<section class="lista-emprendimientos container" id="listaEmpresas">
+  {% if not empresas %}
+  <div class="content-card">
+    <h3>No hay resultados</h3>
+    <p>Aún no hay emprendimientos registrados en esta categoría. Invita a los emprendedores a registrar su empresa.</p>
+  </div>
+  {% else %}
+    {% for e in empresas %}
+    <article class="card-horizontal" data-zona="{{ e.zona or '' }}" data-precio="{{ e.rango_precios or '' }}" data-nombre="{{ e.nombre_emprendimiento|lower }}">
+      <a href="{{ url_for('ver_emprendimiento', id=e.id) }}" class="card-link" title="Ver {{ e.nombre_emprendimiento }}">
+        <img class="card-img" alt="{{ e.nombre_emprendimiento }}"
+             src="{{ url_for('static', filename='Empresas/' ~ e.imagen_filename) if e.imagen_filename else url_for('static', filename='Imagenes/placeholder.png') }}">
+      </a>
+
+      <div class="card-info">
+        <h2><a href="{{ url_for('ver_emprendimiento', id=e.id) }}">{{ e.nombre_emprendimiento }}</a></h2>
+        <p class="meta"><strong>Ubicación:</strong> {{ e.ubicacion or '-' }} • <strong>Zona:</strong> {{ e.zona or '-' }}</p>
+        <p class="descripcion">{{ e.descripcion[:240] ~ ('...' if e.descripcion and e.descripcion|length > 240 else '') }}</p>
+
+        <div class="card-actions">
+          <a href="{{ e.url or '#' }}" 
+            target="_blank" 
+            class="btn btn-primary small visit-btn"
+            data-empresa-id="{{ e.id }}">
+            Visitar
+          </a>
+          <button class="btn-heart" data-empresa="{{ e.id }}" onclick="toggleFavorito(this, {{ e.id }})" aria-label="Guardar">
+            <i class="fas fa-heart"></i>
+          </button>
+          <span class="fav-count" id="fav-count-{{ e.id }}">
+            {{ e.favoritos|length if e.favoritos is defined else '' }}
+          </span>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  {% endif %}
+</section>
+
+</div> <!-- cierre .pagina-categoria -->
+
+<!-- ====== ESTILOS ====== -->
+<style>
+/* ====== HERO ====== */ 
+.hero-banner { 
+  position: relative; margin-top: 75px; /* evita que el header tape la imagen */ height: 450px; overflow: hidden; 
+} 
+.hero-img { 
+  width: 100%; height: 100%; object-fit: cover; display: block; 
+} 
+.overlay { 
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5)); 
+} 
+.hero-text { 
+  position: absolute; bottom: 40px; left: 60px; color: #fff; 
+} 
+.hero-text h1 { 
+  font-size: 40px; margin-bottom: 8px; 
+} 
+.hero-text p { 
+  font-size: 18px; opacity: 0.9; 
+
+}
+/* ====== GENERAL ====== */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.intro-section {
+  text-align: center;
+  padding: 15px 0;
+  background-color: #eeb5b565;
+}
+.intro-section p {
+  font-size: 20px;
+  color: #334155;
+}
+
+/* ====== FILTROS ====== */
+.filtros {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin: 30px 0 45px;
+  flex-wrap: wrap;
+}
+.filtros select {
+  padding: 10px 14px;
+  border-radius: 20px;
+  border: 1px solid #f50bed;
+  font-size: 18px;
+  background: #EEB5B5;
+  transition: all 0.3s;
+}
+.filtros select:hover {
+  border-color: #fac1ff;
+  box-shadow: 0 2px 8px rgba(11,72,107,0.1);
+}
+
+/* ====== BOTONES BASE ====== */
+.btn {
+  padding: 8px 16px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn-ghost {
+  border: 1px solid #0b486b;
+  color: #0b486b;
+}
+.btn-ghost:hover {
+  background: #0b486b;
+  color: white;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #EEB5B5, #e8b5ee);
+  color: white;
+  border: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+/* ====== COLORES POR CATEGORÍA ====== */
+/* 🍽️ Comida */
+.categoria-comida .btn-primary {
+  background: linear-gradient(135deg, #EEB5B5, #e8b5ee);
+}
+
+.categoria-comida .intro-section {
+  background-color: rgba(249, 205, 205, 0.581)
+}
+
+.categoria-comida .filtros select {
+  border: 1px solid #f50bed;
+  background: #EEB5B5;
+}
+/* 🎭 Cultura */
+.categoria-cultura .btn-primary {
+  background: linear-gradient(135deg, #AFAADB, #c9c4f7);
+}
+.categoria-cultura .intro-section {
+  background-color: #c9c4f7a8
+}
+.categoria-cultura .filtros select {
+  border: 1px solid #6a59ff;
+  background: #c9c4f7a8;
+}
+/* 🌿 Naturaleza */
+.categoria-naturaleza .btn-primary {
+  background: linear-gradient(135deg, #ABDAA9, #90c788);
+}
+.categoria-naturaleza .intro-section {
+  background-color: #90c7884e
+}
+.categoria-naturaleza .filtros select {
+  border: 1px solid #6aff65;
+  background: #90c7884e;
+}
+/* 🎠 Ocio */
+.categoria-ocio .btn-primary {
+  background: linear-gradient(135deg, #FFD9A7, #fbc97a);
+}
+.categoria-ocio .intro-section {
+  background-color: #fbc97a51
+}
+.categoria-ocio .filtros select {
+  border: 1px solid #ff9710;
+  background: #fbc97a51;
+}
+.categoria-ocio .btn-heart {
+  color: #ffc375;
+}
+/* ⚽ Deportes */
+.categoria-deportes .btn-primary {
+  background: linear-gradient(135deg, #AADADB, #8bcaca);
+}
+.categoria-deportes .intro-section {
+  background-color: #8bcaca51
+}
+.categoria-deportes .filtros select {
+  border: 1px solid #00fbff;
+  background: #8bcaca51;
+}
+.categoria-deportes .btn-heart {
+  color: #AADADB;
+}
+/* 🛍️ Compras */
+.categoria-compras .btn-primary {
+  background: linear-gradient(135deg, #E59BDC, #f2b5e9);
+}
+.categoria-compras .intro-section {
+  background-color: #f2b5e95f
+}
+.categoria-compras .filtros select {
+  border: 1px solid #ff00e1;
+  background: #f2b5e95f;
+}
+.categoria-compras .btn-heart {
+  color: #E59BDC;
+}
+
+.btn-heart {
+  background: none;
+  border: none;
+  font-size: 30px;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: color .2s;
+}
+.btn-heart:hover { color: #f87171; }
+.btn-heart.active { color: #e11d48; }
+</style>
+
+<!-- ====== JS: FILTROS Y FAVORITOS ====== -->
+<script>
+function toggleFavorito(btn, empresaId){
+  fetch("/favorito/toggle", {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ empresa_id: empresaId })
+  })
+  .then(r => r.json().then(j => ({ ok: r.ok, status: r.status, json: j })))
+  .then(({ok, status, json})=>{
+    if (!ok) {
+      if (status === 401) {
+        window.location = "{{ url_for('login') }}";
+        return;
+      }
+      alert(json.msg || 'Error desconocido');
+      return;
+    }
+    btn.classList.toggle('active', json.action === 'added');
+    const countSpan = document.getElementById('fav-count-' + empresaId);
+    if (countSpan) countSpan.textContent = json.favoritos_count;
+  })
+  .catch(e => console.error(e));
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const filtroZona = document.getElementById("filtroZona");
+  const filtroPrecio = document.getElementById("filtroPrecio");
+  const filtroAZ = document.getElementById("filtroAZ");
+  const cards = Array.from(document.querySelectorAll(".card-horizontal"));
+
+  function aplicarFiltros() {
+    const zona = filtroZona.value;
+    const precio = filtroPrecio.value;
+    const orden = filtroAZ.value;
+
+    // --- Filtrar por zona y precio ---
+    cards.forEach(card => {
+      const cardZona = card.dataset.zona;
+      const cardPrecio = card.dataset.precio;
+      let visible = true;
+
+      if (zona && cardZona !== zona) visible = false;
+      if (precio && cardPrecio !== precio) visible = false;
+
+      card.style.display = visible ? "flex" : "none";
+    });
+
+    // --- Ordenar alfabéticamente las visibles ---
+    if (orden) {
+      const contenedor = document.getElementById("listaEmpresas");
+      const visibles = cards.filter(c => c.style.display !== "none");
+
+      visibles.sort((a, b) => {
+        const nombreA = a.dataset.nombre || "";
+        const nombreB = b.dataset.nombre || "";
+        return orden === "asc" ? nombreA.localeCompare(nombreB) : nombreB.localeCompare(nombreA);
+      });
+
+      visibles.forEach(card => contenedor.appendChild(card));
+    }
+  }
+
+  // Escuchar cambios
+  [filtroZona, filtroPrecio, filtroAZ].forEach(select => {
+    select.addEventListener("change", aplicarFiltros);
+  });
+});
+</script>
+<script>
+document.querySelectorAll('.visit-btn').forEach(btn => {
+  btn.addEventListener('click', async (event) => {
+    const empresaId = btn.getAttribute('data-empresa-id');
+
+    try {
+      await fetch(`/registrar_visita/${empresaId}`, { method: 'POST' });
+    } catch (error) {
+      console.error('Error registrando la visita:', error);
+    }
+  });
+});
+</script>
+{% endblock %}
+
+<!-- ESTILOS MEJORADOS -->
+<style>
+
+
+
+/* ====== TARJETAS ====== */
+.card-horizontal {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  background: #fedfdf;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(12,17,25,0.05);
+  margin-bottom: 22px;
+  transition: transform .2s, box-shadow .3s;
+}
+.card-horizontal:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(12,17,25,0.1);
+}
+.card-img {
+  width: 260px;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.card-info { flex: 1; }
+.card-info h2 {
+  margin: 0 0 8px;
+  font-size: 25px;
+  color: var(--primary-900, #0b486b);
+}
+.card-info a { text-decoration: none; color: inherit; }
+.card-info a:hover { color: #f50bed; }
+.card-info .meta, .card-info .rango {
+  margin: 6px 0;
+  color: #475569;
+  font-size: 18px;
+}
+.card-info .descripcion {
+  color: #374151;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.card-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myianá Chía - Descubre lo mejor de Chía</title>
+
+    <!-- FontAwesome -->
+    <script src="https://kit.fontawesome.com/50956a932a.js" crossorigin="anonymous" defer></script>
+    <!-- CSS base  -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='Estilos/estiloschia.css') }}">
+      <!-- CSS del libro  -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='Estilos/estiloslibro.css') }}">
+    <link rel="icon" href="static/Imagenes/LogoAzulSinFondo.ico" sizes="100x100">
+
+   <!-- Fuentes  -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="//code.jivosite.com/widget/2HA99NJkUt" async></script>
+  </head>
+
+    <script>
+    // Evita mostrar contenido almacenado en el historial al retroceder
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted || (window.performance && window.performance.getEntriesByType("navigation")[0].type === "back_forward")) {
+        window.location.reload();
+        }
+    });
+    </script>
+
+<body>
+    <!-- Header -->
+    <header class="site-header" role="banner" id="site-header">
+        <div class="brand">
+            <a href="{{ url_for('chiaentre') }}" aria-label="Inicio">
+                <img src="{{ url_for('static', filename='Imagenes/LogoSencillo.png') }}" alt="Logo Myiana">
+            </a>
+            <div class="title">Myiana <span style="color:#f59e0b">Chía</span></div>
+        </div>
+
+        <nav class="nav-actions" role="navigation" aria-label="Principal">
+        {% if username %}
+            <!-- Mostrar saludo y redirección al dashboard según el rol -->
+            {% if role == 'Administrador' %}
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-ghost" title="Ir al panel">
+                <i class="fas fa-user-circle"></i> Hola, {{ username }}
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-ghost">Cerrar sesión</a>
+            {% elif role == 'Emprendedor' %}
+            <a href="{{ url_for('emprendedor_dashboard') }}" class="btn btn-ghost" title="Ir al panel">
+                <i class="fas fa-user-circle"></i> Hola, {{ username }}
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-ghost">Cerrar sesión</a>
+            {% elif role == 'Explorador' %}
+            <a href="{{ url_for('explorador_dashboard') }}" class="btn btn-ghost" title="Ir al panel">
+                <i class="fas fa-user-circle"></i> Hola, {{ username }}
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-ghost">Cerrar sesión</a>
+            {% endif %}
+        {% else %}
+            <!-- Mostrar botón de inicio de sesión si no hay usuario -->
+            <a href="/BotonLog" class="btn btn-ghost" title="Iniciar sesión">
+            <i class="fas fa-user-circle"></i> Iniciar sesión
+            </a>
+        {% endif %}
+
+        <a href="https://www.canva.com/design/DAGymtCwjgs/QwDdKz6dOH345ED6543CPA/view?utm_content=DAGymtCwjgs&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=ha273b541e8"
+            class="btn btn-primary" target="_blank" rel="noopener">
+            <i class="fas fa-star"></i> Conoce Nuestros Planes Emprendedor!
+        </a>
+        </nav>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero" role="region" aria-label="Hero">
+        <div class="hero-inner">
+            <div class="hero-copy">
+                <h1 class="fade-in">Descubre lo mejor de <span style="color:#f59e0b">Chía</span><span style="color:#4859c7"> En Myiana-Chia</span></h1>
+                <p class="fade-in delay-1">Explora todo lo que nuestra ciudad tiene para ofrecer: restaurantes, cultura, naturaleza y entretenimiento en una guía práctica y confiable.</p>
+                <!--<div class="hero-ctas fade-in delay-2">
+                    <a class="btn btn-primary" href="/Restaurantes">
+                        <i class="fas fa-utensils"></i> Ver restaurantes
+                    </a>
+                    <a class="btn btn-ghost" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);" href="/Arte">
+                        <i class="fas fa-compass"></i> Explorar
+                    </a>
+                </div>-->
+
+                <!-- categorías -->
+                <div class="button-container fade-in delay-3">
+                    <button class="category-button comida" onclick="location.href='/comida'">🍽️ Comida y Bebida <span>Restaurantes, cafés y bares</span></button>
+                    <button class="category-button arte" onclick="location.href='/cultura'">🎨 Arte y Cultura <span>Museos, galerías y eventos</span></button>
+                    <button class="category-button nat" onclick="location.href='/naturaleza'">🌳 Naturaleza <span>Parques y espacios al aire libre</span></button>
+                    <button class="category-button ocio" onclick="location.href='/ocio'">🎭 Ocio y Entretenimiento <span>Zona Gamer</span></button>
+                    <button class="category-button depo" onclick="location.href='/deportes'">⚽ Deportes <span>Actividades deportivas</span></button>
+                    <button class="category-button shop" onclick="location.href='/compras'">🛍️ Compras <span>Centros comerciales y tiendas</span></button>
+                </div>
+            </div>
+
+            <aside class="hero-card fade-in delay-4" aria-hidden="false">
+                <img src="{{ url_for('static', filename='Imagenes/chiade.jpg') }}" alt="Descubre en Chía" loading="lazy">
+                <div>
+                    <h4>Descubre en Chía</h4>
+                    <p>Mas abajo descubre una guía con los mejores lugares seleccionados por la comunidad.</p>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+   <!-- Sección del Catálogo Libro -->
+    <section id="catalogo-libro" class="catalogo-section">
+        <div class="container">
+            <h2 class="section-title">Descubre Chía</h2>
+            <p class="section-subtitle">Explora los mejores lugares de diversión y entretenimiento</p>
+            
+            <!-- Book Container -->
+            <div class="book-container">
+                <!-- Book -->
+                <div id="book" class="book">
+                    <!-- Paper 1 -->
+                    <div id="p1" class="paper">
+                        <div class="front front-portada">
+                            <div id="f1" class="front-content">
+                                <div class="portada-content">
+                                    <h2>Catálogo Entretenimiento Chía!</h2>
+                                    <p>Explora lo mejor de Chía: descubre los rincones más fascinantes y llenos de diversión. Esta guía te ofrece información completa sobre los lugares más emocionantes de la ciudad, ¡para que vivas experiencias únicas en cada paso!</p>
+                                    <span class="arrow">Desliza para comenzar →</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="back">
+                            <div id="b1" class="back-content">
+                                <!-- Contenido de la página 1 -->
+                                <a href="https://fontanarcentrocomercial.appsmccann.com/wp-content/uploads/2025/03/REGLAMENTO_DIGITAL_MV-5.pdf" class="store-card">
+                                    <div class="store-card-image">
+                                        <img src="https://fontanarcentrocomercial.com/wp-content/uploads/2025/02/MISIONV-MOBILE.png" alt="Misión Vitrum">
+                                    </div>
+                                    <div class="store-card-content">
+                                        <h3>Misión Vitrum - LaserTag</h3>
+                                        <p>Juego de laser tag con temática futurista para todas las edades.</p>
+                                        <p><strong>Dirección:</strong> Centro Comercial Fontanar, primer piso sur, entre Tugó y Dollarcity.</p>
+                                        <p><strong>Precios:</strong> $19.000 - $43.000</p>
+                                        <p><strong>Horarios:</strong> Todos los días: 1:00 p.m. a 8:00 p.m.</p>
+                                    </div>
+                                </a>
+
+                                <a href="https://playzonevip.com/" class="store-card reverse">
+                                    <div class="store-card-image">
+                                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZfR15OGUS-heVUoKt0XvTa-CFj8YRhehHgg&s" alt="Playzone VIP">
+                                    </div>
+                                    <div class="store-card-content">
+                                        <h3>Playzone VIP</h3>
+                                        <p>Centro de entretenimiento con canchas de fútbol, paintball y salas de escape.</p>
+                                        <p><strong>Teléfono:</strong> +57 313 248 5526</p>
+                                        <p><strong>Dirección:</strong> Cra. 9 Vereda Bojacá / Km 1 vía Chía-Cajicá</p>
+                                        <p><strong>Precios:</strong> $$</p>
+                                        <p><strong>Horarios:</strong> Todos los días 2pm a 11pm</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <!-- Paper 2 -->
+                <div id="p2" class="paper">
+                    <div class="front">
+                        <div id="f2" class="front-content">
+                            <a href="https://www.centrochia.com.co/" class="store-card reverse">
+                                <div class="store-card-image">
+                                    <img src="https://obycon.com/wp-content/uploads/2022/02/Parque-Centro-Chia-2.jpg" alt="Centro Comercial Centro Chía">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Centro Comercial Centro Chía</h3>
+                                    <p>Centro comercial con variedad de tiendas, restaurantes y un parque natural interno.</p>
+                                    <p><strong>Teléfono:</strong> +57 1 8689012</p>
+                                    <p><strong>Dirección:</strong> Avenida Pradilla #5-30, Chía</p>
+                                    <p><strong>Parqueadero:</strong> $1.900 - $23.000</p>
+                                    <p><strong>Horarios:</strong> Lunes a domingo 10am a 8pm</p>
+                                </div>
+                            </a>
+
+                            <a href="https://fontanarcentrocomercial.com/" class="store-card">
+                                <div class="store-card-image">
+                                    <img src="https://fontanarcentrocomercial.com/wp-content/uploads/2023/01/Foto-Fachada.jpg" alt="Centro Comercial Fontanar">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Centro Comercial Fontanar</h3>
+                                    <p>Amplio centro comercial con tiendas de marcas internacionales, restaurantes y entretenimiento.</p>
+                                    <p><strong>Teléfono:</strong> +57 1 8678901</p>
+                                    <p><strong>Dirección:</strong> Km 2.5 Vía Chía – Cajicá</p>
+                                    <p><strong>Precios:</strong> $3.000 - $7.000</p>
+                                    <p><strong>Horarios:</strong> Lunes a domingo 10am a 9pm</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="back">
+                        <div id="b2" class="back-content">
+                            <a href="https://www.centrochia.com.co/parque/" class="store-card reverse">
+                                <div class="store-card-image">
+                                    <img src="https://www.centrochia.com.co/wp-content/uploads/2022/06/EXPORTADO-6-1-MB.jpg" alt="Parque Natural Centro Chía">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Parque Natural Centro Chía</h3>
+                                    <p>Parque con zonas verdes, juegos infantiles y senderos ecológicos dentro del centro comercial.</p>
+                                    <p><strong>Teléfono:</strong> +57 1 8667890</p>
+                                    <p><strong>Dirección:</strong> Avenida Pradilla #5-30, Chía</p>
+                                    <p><strong>Precios:</strong> Entrada libre</p>
+                                    <p><strong>Horarios:</strong> Todos los días 10am a 8pm</p>
+                                </div>
+                            </a>
+
+                            <a href="https://turismo.chia-cundinamarca.gov.co/2023/09/20/parque-natural-montana-del-oso/" class="store-card">
+                                <div class="store-card-image">
+                                    <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/16/5b/14/6a/photo1jpg.jpg?w=1200&h=-1&s=1" alt="Parque La Montaña del Oso">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Parque La Montaña del Oso</h3>
+                                    <p>Espacio natural ideal para caminatas ecológicas y avistamiento de fauna.</p>
+                                    <p><strong>Teléfono:</strong> +57 1 8654321</p>
+                                    <p><strong>Dirección:</strong> Vereda La Balsa, Chía</p>
+                                    <p><strong>Precios:</strong> Entrada libre</p>
+                                    <p><strong>Horarios:</strong> Todos los días 6am a 6pm</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Paper 3 -->
+                <div id="p3" class="paper">
+                    <div class="front">
+                        <div id="f3" class="front-content">
+                            <a href="https://www.elgalapago.com/" class="store-card reverse">
+                                <div class="store-card-image">
+                                    <img src="https://elgalapago.com/wp-content/uploads/2024/03/campestre.jpg" alt="El Galápago Campestre">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>El Galápago Campestre</h3>
+                                    <p>Restaurante campestre que ofrece carnes a la parrilla en un entorno natural.</p>
+                                    <p><strong>Teléfono:</strong> +57 1 8645678</p>
+                                    <p><strong>Dirección:</strong> Vereda Bojacá, Chía</p>
+                                    <p><strong>Precios:</strong> $16.900 - $80.400</p>
+                                    <p><strong>Horarios:</strong> Viernes a domingo 12pm a 9pm</p>
+                                </div>
+                            </a>
+
+                            <a href="https://www.instagram.com/celestinarestaurante/?hl=es" class="store-card">
+                                <div class="store-card-image">
+                                    <img src="https://media-cdn.tripadvisor.com/media/photo-s/0e/67/5c/73/photo4jpg.jpg" alt="Celestina">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Celestina</h3>
+                                    <p>Restaurante con una propuesta gastronómica innovadora y ambiente elegante.</p>
+                                    <p><strong>Teléfono:</strong> +57 1 8637890</p>
+                                    <p><strong>Dirección:</strong> Avenida Pradilla #5-30, Chía</p>
+                                    <p><strong>Precios:</strong> $$ - $$$</p>
+                                    <p><strong>Horarios:</strong> Martes a domingo 1pm a 11pm</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="back">
+                        <div id="b3" class="back-content">
+                            <a href="https://www.instagram.com/restaurantetierraroja/?hl=es" class="store-card reverse">
+                                <div class="store-card-image">
+                                    <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0b/44/70/8d/tierra-roja.jpg?w=900&h=500&s=1" alt="Tierra Roja Restaurant">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Tierra Roja Restaurante</h3>
+                                    <p>Especializado en mariscos y cocina mediterránea con un ambiente acogedor.</p>
+                                    <p><strong>Teléfono:</strong> +57 311 4808890</p>
+                                    <p><strong>Dirección:</strong> Cra. 10 #1 Sur-324 Vereda La Balsa</p>
+                                    <p><strong>Precios:</strong> $12.000 - $107.000</p>
+                                    <p><strong>Horarios:</strong> Lunes a sábado 12pm a 10pm</p>
+                                </div>
+                            </a>
+
+                            <a href="https://www.laspuertasrestaurante.co/" class="store-card">
+                                <div class="store-card-image">
+                                    <img src="https://lh3.googleusercontent.com/p/AF1QipMbMSwE0zpdwwAqKMHMB0iHPWFIIIFpU02TLFn_=s1360-w1360-h1020-rw" alt="Las Puertas">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Las Puertas Restaurante</h3>
+                                    <p>Restaurante con una propuesta gastronómica innovadora y ambiente elegante.</p>
+                                    <p><strong>Teléfono:</strong> +57 300 6235391</p>
+                                    <p><strong>Dirección:</strong> Barrio Los Chilacos, Cl. 21a #5-36</p>
+                                    <p><strong>Precios:</strong> $20,000-$30,000</p>
+                                    <p><strong>Horarios:</strong> Martes a domingo 1pm a 11pm</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Paper 4 -->
+                <div id="p4" class="paper">
+                    <div class="front">
+                        <div id="f4" class="front-content">
+                            <a href="https://fontanarcentrocomercial.com/escape-game/" class="store-card reverse">
+                                <div class="store-card-image">
+                                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRK9XnsimP6d2HMxsiwaTZaHW6QyIvUzsEJ7g&s" alt="Escape Game">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Escape Game</h3>
+                                    <p>Escape room divertido para toda la familia.</p>
+                                    <p><strong>Dirección:</strong> Carrera 2 #10-50, Chía</p>
+                                    <p><strong>Precios:</strong> $25.000-$55.000</p>
+                                    <p><strong>Horarios:</strong> Viernes, Sábado y Domingo: 1:00 pm a 8:00pm.</p>
+                                </div>
+                            </a>
+
+                            <a href="https://www.andrescarnederes.com/" class="store-card">
+                                <div class="store-card-image">
+                                    <img src="https://lh3.googleusercontent.com/p/AF1QipOx5LvN4obvA10dYHMuj9TfujAgDU0tLaLcyF-2=s1360-w1360-h1020-rw" alt="Andrés Carne de Res">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Andrés Carne de Res</h3>
+                                    <p>Restaurante emblemático que combina gastronomía, música y arte en un ambiente único.</p>
+                                    <p><strong>Teléfono:</strong> +57 1 8612233</p>
+                                    <p><strong>Dirección:</strong> Calle 3 #11A-56, Chía</p>
+                                    <p><strong>Precios:</strong> $100.000 en adelante</p>
+                                    <p><strong>Horarios:</strong> Miércoles a domingo 12pm a 1am</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="back">
+                        <div id="b4" class="back-content">
+                            <a href="https://teatrofahrenheit451.com/" class="store-card reverse">
+                                <div class="store-card-image">
+                                    <img src="https://elperiodicodechia.com/wp-content/uploads/2020/08/12-teatro-digital-1024x683.jpg" alt="Teatro Fahrenheint 451">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Teatro Fahrenheint 451</h3>
+                                    <p>Espacio cultural que promueve el teatro contemporáneo, talleres y eventos artísticos.</p>
+                                    <p><strong>Teléfono:</strong> +57 313 882 0408</p>
+                                    <p><strong>Dirección:</strong> Cra 4 #9-22 barrio El Campincito</p>
+                                    <p><strong>Precios:</strong> Depende de la función</p>
+                                    <p><strong>Horarios:</strong> Según programación</p>
+                                </div>
+                            </a>
+
+                            <a href="https://www.tostaduriacolegiodecafe.com/" class="store-card">
+                                <div class="store-card-image">
+                                    <img src="https://lh3.googleusercontent.com/p/AF1QipNdfECX7A3rmwx_aWVRjEakKRqd8Vm779QpyHwh=s1360-w1360-h1020-rw" alt="Bruna Café">
+                                </div>
+                                <div class="store-card-content">
+                                    <h3>Bruna Café</h3>
+                                    <p>Fusión de galería, café y tienda de cuero con productos artesanales y talleres creativos.</p>
+                                    <p><strong>Teléfono:</strong> +57 300 7533155</p>
+                                    <p><strong>Dirección:</strong> Av. Pradilla #6-59E</p>
+                                    <p><strong>Precios:</strong> $10,000-20,000</p>
+                                    <p><strong>Horarios:</strong> Lunes a sábado 10am a 7pm</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+           <!--  Botones navegacion -->
+                <button id="prev-btn" class="book-btn">
+                    <i class="fas fa-arrow-circle-left"></i>
+                </button>
+                <button id="next-btn" class="book-btn">
+                    <i class="fas fa-arrow-circle-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+<!-- JavaScript del libro -->
+        <script 
+        src="{{ url_for('static', filename='Java/librochia.js') }}"></script>
+        </script>
+        
+    <!-- JavaScript adicional para efectos generales -->
+    <script>
+        // Efecto de scroll en el header
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('site-header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+    
+        const scrollElements = document.querySelectorAll('.scroll-fade');
+        
+        const elementInView = (el, dividend = 1) => {
+            const elementTop = el.getBoundingClientRect().top;
+            return (
+                elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend
+            );
+        };
+        
+        const displayScrollElement = (element) => {
+            element.classList.add('visible');
+        };
+        
+        const handleScrollAnimation = () => {
+            scrollElements.forEach((el) => {
+                if (elementInView(el, 1.2)) {
+                    displayScrollElement(el);
+                }
+            });
+        };
+        
+        window.addEventListener('scroll', () => {
+            handleScrollAnimation();
+        });
+ 
+        document.addEventListener('DOMContentLoaded', function() {
+            handleScrollAnimation();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,633 @@
+{% extends 'Base/base.html' %}
+{% block title %}Panel Administrador{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='Estilos/login.css') }}">
+
+<!-- AGREGAR ESTOS ESTILOS PARA LOS BOTONES -->
+<style>
+  /* ===== ESTILOS PARA BOTONES DE ACCIÓN ===== */
+  .btn {
+    display: inline-block;
+    padding: 6px 12px;
+    margin: 2px;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+
+  .btn-sm {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+
+  /* Botón VER - Color azul/info */
+  .btn-info {
+    background-color: #17a2b8;
+    color: white;
+  }
+  .btn-info:hover {
+    background-color: #138496;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  /* Botón EDITAR - Color amarillo/warning */
+  .btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+  }
+  .btn-warning:hover {
+    background-color: #e0a800;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  /* Botón ELIMINAR - Color rojo/danger */
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+  }
+  .btn-danger:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  /* Botón GUARDAR - Color verde/success */
+  .btn-success {
+    background-color: #28a745;
+    color: white;
+    padding: 8px 16px;
+  }
+  .btn-success:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  /* Botón CANCELAR - Color gris/secondary */
+  .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    padding: 8px 16px;
+  }
+  .btn-secondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  /* Contenedor de botones en tablas */
+  .btn-action-group {
+    display: flex;
+    gap: 5px;
+    flex-wrap: nowrap;
+  }
+
+  /* Asegurar que los botones en tablas se vean bien */
+  table .btn {
+    white-space: nowrap;
+    min-width: 60px;
+  }
+
+  /* Mejoras para los formularios en línea */
+  form[style*="display:inline"] {
+    display: inline-block;
+    margin: 0;
+  }
+
+  /* Efectos adicionales para mejor UX */
+  .btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  /* Responsive para móviles */
+  @media (max-width: 768px) {
+    .btn-action-group {
+      flex-direction: column;
+      gap: 3px;
+    }
+    
+    table .btn {
+      min-width: 50px;
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+  }
+</style>
+
+<div class="dashboard">
+  <!-- ===== SIDEBAR IZQUIERDA ===== -->
+  <div class="sidebar">
+    <div class="brand">
+      <img src="{{ url_for('static', filename='Imagenes/logoazul.png') }}" alt="Logo">
+      <h2>Admin Panel</h2>
+      <p class="welcome-text">Bienvenido, {{ session.get('username', 'Admin') }}</p>
+    </div>
+
+    <a href="#" class="sidebar-btn active" data-section="inicio">Inicio</a>
+    <a href="#" class="sidebar-btn" data-section="emprendedores">Emprendedores</a>
+    <a href="#" class="sidebar-btn" data-section="exploradores">Exploradores</a>
+    <a href="#" class="sidebar-btn" data-section="auditoria">Auditoría</a>
+    <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+  </div>
+
+  <!-- ===== CONTENIDO PRINCIPAL ===== -->
+  <div class="main-content">
+    <h1 id="section-title">Resumen General</h1>
+
+    <!-- === SECCIÓN INICIO === -->
+    <div id="inicio" class="content-section active">
+      <div class="stats-grid">
+        <div class="stat-card pastel-blue">
+          <h3>Total Usuarios</h3>
+          <p class="stat-number">{{ total_usuarios }}</p>
+        </div>
+
+        <div class="stat-card pastel-green">
+          <h3>Exploradores</h3>
+          <p class="stat-number">{{ total_exploradores }}</p>
+        </div>
+
+        <div class="stat-card pastel-orange">
+          <h3>Emprendedores</h3>
+          <p class="stat-number">{{ total_emprendedores }}</p>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2>Distribución de Roles</h2>
+        <canvas id="rolesChart"></canvas>
+      </div>
+    </div>
+
+    <!-- === SECCIÓN EMPRENDEDORES === -->
+    <div id="emprendedores" class="content-section">
+      <div class="chart-card">
+        <h2>Distribución de Emprendedores por Plan</h2>
+        <canvas id="chartPlanes"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <h2 class="section-title">Emprendedores Registrados</h2>
+
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>NIT</th>
+              <th>Zona</th>
+              <th>Ubicación</th>
+              <th>Plan</th>
+              <th>Clasificación</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in empresa %}
+            <tr>
+              <td>{{ e.id }}</td>
+              <td>{{ e.nombre_emprendimiento or 'Sin nombre' }}</td>
+              <td>{{ e.nit or '-' }}</td>
+              <td>{{ e.zona or '-' }}</td>
+              <td>{{ e.ubicacion or '-' }}</td>
+              <td>{{ e.plan or '-' }}</td>
+              <td>{{ e.clasificacion or '-' }}</td>
+              <td>
+                <div class="btn-action-group">
+                  <!-- Botón Ver --> 
+                  <a href="{{ url_for('ver_emprendimiento', id=e.id) }}" class="btn btn-info btn-sm">Ver</a>
+                  <button class="btn btn-warning btn-sm" onclick="abrirModalEditar('{{ e.id }}', '{{ e.nombre_emprendimiento }}', '{{ e.nit }}', '{{ e.zona }}', '{{ e.ubicacion }}', '{{ e.plan }}', '{{ e.clasificacion }}')">Editar</button>
+                  <form action="{{ url_for('eliminar_emprendimiento', id=e.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este emprendimiento?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- === SECCIÓN EXPLORADORES === -->
+    <div id="exploradores" class="content-section">
+      <div class="chart-card">
+        <h2>Preferencias de los Exploradores</h2>
+        <canvas id="chartPreferencias"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <h2>Exploradores Registrados</h2>
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th>Teléfono</th>
+              <th>Preferencias</th>
+              <th>Fecha Nacimiento</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for x in exploradores %}
+            <tr>
+              <td>{{ x.id }}</td>
+              <td>{{ x.primer_nombre or '-' }}</td>
+              <td>{{ x.primer_apellido or '-' }}</td>
+              <td>{{ x.telefono or '-' }}</td>
+              <td>{{ x.preferencias or 'Sin preferencias' }}</td>
+              <td>{{ x.fecha_nacimiento or '-' }}</td>
+              <td>
+                <div class="btn-action-group">
+                  <a href="{{ url_for('ver_explorador', id=x.id) }}" class="btn btn-info btn-sm">Ver</a>
+                  <button class="btn btn-warning btn-sm"
+                    onclick="abrirModalEditarExplorador('{{ x.id }}', '{{ x.primer_nombre }}', '{{ x.segundo_nombre }}', '{{ x.primer_apellido }}', '{{ x.segundo_apellido }}', '{{ x.telefono }}', '{{ x.preferencias }}', '{{ x.fecha_nacimiento }}')">Editar</button>
+                  <form action="{{ url_for('eliminar_explorador', id=x.id) }}" method="POST" style="display:inline;"
+                    onsubmit="return confirm('¿Seguro que deseas eliminar este explorador?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- === SECCIÓN AUDITORÍA === -->
+    <div id="auditoria" class="content-section">
+      <div class="chart-card">
+        <h2>Registro de acciones</h2>
+        <canvas id="chartAuditoria"></canvas>
+      </div>
+      
+      <table id="tablaAuditoria" class="table table-striped" style="width:100%; margin-top:15px;">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Usuario</th>
+            <th>Acción</th>
+            <th>ID Afectado</th>
+            <th>Detalles</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td>{{ log.fecha.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ log.user.nombre if log.user else 'Sistema' }}</td>
+            <td>{{ log.accion }}</td>
+            <td>{{ log.entidad_id }}</td>
+            <td>{{ log.detalles }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- === MODAL DINÁMICO DE EDICIÓN === -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h3>Editar Emprendimiento</h3>
+    <form id="editForm" method="POST">
+      <input type="hidden" name="id" id="editId">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" name="nombre_emprendimiento" id="editNombre" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>NIT</label>
+        <input type="text" name="nit" id="editNit" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Zona</label>
+        <input type="text" name="zona" id="editZona" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Ubicación</label>
+        <input type="text" name="ubicacion" id="editUbicacion" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Plan</label>
+        <select name="plan" id="editPlan" class="form-select">
+          <option value="Sin Plan">Sin Plan</option>
+          <option value="Valvanera">Valvanera</option>
+          <option value="Castillo Marroquin">Castillo Marroquín</option>
+          <option value="Diosa Chía">Diosa Chía</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Clasificación</label>
+        <input type="text" name="clasificacion" id="editClasificacion" class="form-control">
+      </div>
+      <div class="modal-buttons">
+        <button type="submit" class="btn btn-success">Guardar cambios</button>
+        <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- === MODAL DINÁMICO DE EDICIÓN EXPLORADOR === -->
+<div id="editModalExplorador" class="modal">
+  <div class="modal-content">
+    <h3>Editar Explorador</h3>
+    <form id="editFormExplorador" method="POST">
+      <input type="hidden" name="id" id="editIdExplorador">
+      <div class="form-group"><label>Primer Nombre</label><input type="text" name="primer_nombre" id="editPrimerNombre" class="form-control"></div>
+      <div class="form-group"><label>Segundo Nombre</label><input type="text" name="segundo_nombre" id="editSegundoNombre" class="form-control"></div>
+      <div class="form-group"><label>Primer Apellido</label><input type="text" name="primer_apellido" id="editPrimerApellido" class="form-control"></div>
+      <div class="form-group"><label>Segundo Apellido</label><input type="text" name="segundo_apellido" id="editSegundoApellido" class="form-control"></div>
+      <div class="form-group"><label>Teléfono</label><input type="text" name="telefono" id="editTelefono" class="form-control"></div>
+      <div class="form-group"><label>Preferencias</label><input type="text" name="preferencias" id="editPreferencias" class="form-control"></div>
+      <div class="form-group"><label>Fecha Nacimiento</label><input type="date" name="fecha_nacimiento" id="editFecha" class="form-control"></div>
+      <div class="modal-buttons">
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalExplorador()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- === SCRIPTS === -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  /* === GRÁFICA DE ACCIONES DE AUDITORÍA === */
+  (() => {
+    const ctxAudit = document.getElementById('chartAuditoria');
+    const labelsAudit = {{ acciones_labels|tojson }};
+    const valuesAudit = {{ acciones_values|tojson }};
+
+    const maxYAudit = Math.max(...valuesAudit);
+    const suggestedMaxAudit = maxYAudit + maxYAudit * 0.2;
+
+    new Chart(ctxAudit, {
+      type: 'bar',
+      data: {
+        labels: labelsAudit,
+        datasets: [{
+          label: 'Acciones realizadas',
+          data: valuesAudit,
+          backgroundColor: ['#7BA1CD', '#ffb703', '#fb8500'] // mismos tonos base
+        }]
+      },
+      options: {
+        aspectRatio: 2, // 🔹 hace la gráfica más esbelta
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMax: suggestedMaxAudit,
+            ticks: { stepSize: Math.ceil(maxYAudit / 5) || 1 }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  })();
+
+  /* === GRÁFICA DE ROLES === */
+  const ctxRoles = document.getElementById('rolesChart');
+  new Chart(ctxRoles, {
+    type: 'doughnut',
+    data: {
+      labels: {{ roles_data.keys()|list|tojson }},
+      datasets: [{
+        data: {{ roles_data.values()|list|tojson }},
+        backgroundColor: ['#72B5A4', '#F5B971'],
+      }]
+    },
+    options: { plugins: { legend: { position: 'bottom' } } }
+  });
+
+  /* === GRÁFICA DE PREFERENCIAS (EXPLORADORES) === */
+  (() => {
+    const ctxPref = document.getElementById('chartPreferencias');
+    const valuesPref = {{ values_pref|tojson }};
+    const labelsPref = {{ labels_pref|tojson }};
+    
+    // Si el canvas existe (para evitar errores cuando no está en pantalla)
+    if (!ctxPref) return;
+    
+    // Calcular el valor máximo y darle margen visual
+    const maxYPref = Math.max(...valuesPref);
+    const suggestedMaxPref = maxYPref + maxYPref * 0.2;
+
+    new Chart(ctxPref, {
+      type: 'bar',
+      data: {
+        labels: labelsPref,
+        datasets: [{
+          label: 'Cantidad de Exploradores',
+          data: valuesPref,
+          backgroundColor: [
+            '#ffb703',  // Comida
+            '#219ebc',  // Hospedaje
+            '#8ecae6',  // Ocio
+            '#fb8500',  // Arte y Cultura
+            '#90be6d',  // Naturaleza
+            '#c77dff'   // Compras
+          ]
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMax: suggestedMaxPref,
+            ticks: { stepSize: Math.ceil(maxYPref / 5) || 1 }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  })();
+
+  /* === GRÁFICA DE PLANES (EMPRENDEDORES) === */
+  (() => {
+    const ctxPlan = document.getElementById('chartPlanes');
+    const valuesPref = {{ values_plan|tojson }};
+    const maxYPlan = Math.max(...valuesPref);
+    const suggestedMaxPlan = maxYPlan + maxYPlan * 0.2;
+
+    new Chart(ctxPlan, {
+      type: 'bar',
+      data: {
+        labels: {{ labels_plan|tojson }},
+        datasets: [{
+          label: 'Cantidad de Emprendedores',
+          data: valuesPref,
+          backgroundColor: ['#7BA1CD', '#ffb703', '#fb8500', '#219ebc']
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMax: suggestedMaxPlan,
+            ticks: { stepSize: Math.ceil(maxYPlan / 5) || 1 }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  })();
+
+  /* === SIDEBAR INTERACTIVO === */
+  document.querySelectorAll('.sidebar-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const section = btn.dataset.section;
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      document.getElementById(section).classList.add('active');
+
+      const title = document.getElementById('section-title');
+      if (section === 'inicio') title.textContent = 'Resumen General';
+      else if (section === 'emprendedores') title.textContent = 'Emprendedores registrados';
+      else if (section === 'exploradores') title.textContent = 'Exploradores registrados';
+      else if (section === 'auditoria') title.textContent = 'Registro de Auditoría';
+    });
+  });
+
+  /* === MODALES === */
+  function abrirModalEditar(id, nombre, nit, zona, ubicacion, plan, clasificacion) {
+    const modal = document.getElementById('editModal');
+    modal.style.display = 'flex';
+    document.getElementById('editId').value = id;
+    document.getElementById('editNombre').value = nombre;
+    document.getElementById('editNit').value = nit;
+    document.getElementById('editZona').value = zona;
+    document.getElementById('editUbicacion').value = ubicacion;
+    document.getElementById('editPlan').value = plan;
+    document.getElementById('editClasificacion').value = clasificacion;
+    document.getElementById('editForm').action = `/editar_emprendimiento/${id}`;
+  }
+  function cerrarModal() {
+    document.getElementById('editModal').style.display = 'none';
+  }
+
+  function abrirModalEditarExplorador(id, p1, p2, a1, a2, tel, pref, fecha) {
+    const modal = document.getElementById('editModalExplorador');
+    modal.style.display = 'flex';
+    document.getElementById('editIdExplorador').value = id;
+    document.getElementById('editPrimerNombre').value = p1;
+    document.getElementById('editSegundoNombre').value = p2;
+    document.getElementById('editPrimerApellido').value = a1;
+    document.getElementById('editSegundoApellido').value = a2;
+    document.getElementById('editTelefono').value = tel;
+    document.getElementById('editPreferencias').value = pref;
+    document.getElementById('editFecha').value = fecha;
+    document.getElementById('editFormExplorador').action = `/editar_explorador/${id}`;
+  }
+  function cerrarModalExplorador() {
+    document.getElementById('editModalExplorador').style.display = 'none';
+  }
+
+  /* === CIERRE GLOBAL DE MODALES SIN ROMPER OTROS EVENTOS === */
+  window.addEventListener('click', e => {
+    const m1 = document.getElementById('editModal');
+    const m2 = document.getElementById('editModalExplorador');
+    if (e.target === m1) cerrarModal();
+    if (e.target === m2) cerrarModalExplorador();
+  });
+</script>
+
+<style>
+
+  #tablaAuditoria {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 30px;
+  }
+  #tablaAuditoria th, #tablaAuditoria td {
+    padding: 10px;
+    border: 1px solid #ddd;
+  }
+  #tablaAuditoria th {
+    background-color: #0b486b;
+    color: white;
+  }
+  #tablaAuditoria tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  .stats-grid {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .stat-card {
+    flex: 1;
+    min-width: 180px;
+    text-align: center;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .pastel-blue { background-color: #cfe8fc; }
+  .pastel-green { background-color: #d9f7e6; }
+  .pastel-orange { background-color: #ffe4b3; }
+  .stat-number { font-size: 2rem; font-weight: bold; margin-top: 0.5rem; }
+
+  .chart-card {
+    margin-top: 2rem;
+    background: #fff;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  th, td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  th { background-color: #f2f2f2; }
+
+  /* === MODAL === */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 400px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+  .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+    gap: 10px;
+  }
+</style>
+{% endblock %}

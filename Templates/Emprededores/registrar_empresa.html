@@ -1,0 +1,98 @@
+{% extends "Base/base.html" %}
+{% block title %}Registrar Empresa{% endblock %}
+
+{% block content %}
+<div class="content-card pastel-sky">
+    <h2 class="main-title-area text-center mb-4">Registrar Información de tu Empresa</h2>
+
+    <form action="{{ url_for('registrar_empresa') }}" method="POST" enctype="multipart/form-data" class="p-4">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="nombre_emprendimiento" class="form-label">Nombre del Emprendimiento</label>
+                <input type="text" class="form-control" name="nombre_emprendimiento" id="nombre_emprendimiento" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="nit" class="form-label">Nit</label>
+                <input type="text" class="form-control" name="nit" id="nit" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="clasificacion" class="form-label">Clasificación</label>
+                <select name="clasificacion" id="clasificacion" class="form-select" required>
+                    <option value="">Selecciona una categoría</option>
+                    <option value="Comida">Comida</option>
+                    <option value="Ocio">Ocio</option>
+                    <option value="Deportes">Deportes</option>
+                    <option value="Cultura">Arte y Cultura</option>
+                    <option value="Naturaleza">Naturaleza</option>
+                    <option value="Compras">Compras</option>
+                </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="zona" class="form-label">Zona</label>
+                <select name="zona" id="zona" class="form-select" required>
+                    <option value="">Filtrar por sector</option>
+                    <option value="Centro">Centro</option>
+                    <option value="El Cerrito">El Cerrito</option>
+                    <option value="Delicias">Delicias</option>
+                    <option value="Campin">Campín</option>
+                    <option value="Santa Rita">Santa Rita</option>
+                    <option value="Tres esquinas">Tres esquinas</option>
+                    <option value="Rio Frio">Río Frío</option>
+                    <option value="El Misterio">El Misterio</option>
+                    <option value="La Estacion">La Estación</option>
+                    <option value="Fagua">Fagua</option>
+                    <option value="Yerbabuena ">Yerbabuena </option>
+                    <option value="Fonquetá ">Fonquetá</option>
+                    <option value="Bojacá">Bojacá</option>
+                </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="ubicacion" class="form-label">Ubicación exacta</label>
+                <input type="text" class="form-control" name="ubicacion" id="ubicacion" placeholder="Ej. Carrera 8 #12-34" required>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label for="descripcion" class="form-label">Descripción del Emprendimiento</label>
+                <textarea class="form-control" name="descripcion" id="descripcion" rows="3" placeholder="Describe brevemente qué ofrece tu empresa..." required></textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="rango_precios" class="form-label">Rango de precios</label>
+                <select class="form-select" name="rango_precios" id="rango_precios">
+                    <option value="">Selecciona un rango</option>
+                    <option value="$">$ 10.000 - $50.000 Económico</option>
+                    <option value="$$">$$ 20.000 - $80.000 Medio</option>
+                    <option value="$$$">$$$ 50.000 - $200.000 Alto</option>
+                </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="url" class="form-label">Sitio web o red social</label>
+                <input type="url" class="form-control" name="url" id="url" placeholder="https://ejemplo.com">
+            </div>
+
+            <div class="col-12 mb-3">
+                <label for="imagen" class="form-label">Imagen o logo de tu empresa</label>
+                <input type="file" class="form-control" name="imagen" id="imagen" accept="image/*">
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Registrar Empresa</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const mensaje = "{{ get_flashed_messages(with_categories=true) }}";
+    if (!mensaje.includes('success') && !mensaje.includes('info')) {
+        console.log("Formulario de registro de empresa listo.");
+    }
+});
+</script>
+{% endblock %}
