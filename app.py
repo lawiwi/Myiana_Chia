@@ -872,7 +872,7 @@ def recomendar_lugar(categoria):
     return jsonify({
         'nombre': lugar.nombre_emprendimiento,
         'descripcion': lugar.descripcion,
-        'imagen': url_for('static', filename=f'Empresas/{lugar.imagen_filename}') if lugar.imagen_filename else url_for('static', filename='Imagenes/default.jpg'),
+        'imagen': lugar.imagen_filename,,
         'url': lugar.url or '#'
     })
 
@@ -940,4 +940,5 @@ def comida(categoria):
                            empresas=empresas,
                            username=username,
                            role=role)
+
 
