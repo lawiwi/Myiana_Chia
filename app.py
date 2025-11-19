@@ -391,9 +391,8 @@ def registrar_empresa():
         return redirect(url_for('emprendedor_dashboard'))
 
     if request.method == 'POST':
-        nombre_emprendimiento = request.form.get('nombre_emprendimiento')
+        nombre = request.form.get('nombre')
         clasificacion = request.form.get('clasificacion')
-        nit = request.form.get('nit')
         zona = request.form.get('zona')
         ubicacion = request.form.get('ubicacion')
         descripcion = request.form.get('descripcion')
@@ -401,50 +400,41 @@ def registrar_empresa():
         url_empresa = request.form.get('url')
         imagen = request.files.get('imagen')
 
-
+        # Guardar imagen
+        filename = None
         if imagen and imagen.filename:
-            # Aseguramos un nombre seguro
-            filename_seguro = secure_filename(imagen.filename)
-            extension = os.path.splitext(filename_seguro)[1]
+            filename = secure_filename(imagen.filename)
+            upload_path = os.path.join(app.static_folder, 'uploads', filename)
+            imagen.save(upload_path)
 
-            # Generamos un nuevo nombre más uniforme
-            nombre_limpio = secure_filename(nombre_emprendimiento.lower().replace(" ", "_"))
-            nuevo_nombre = f"{nombre_limpio}{extension}"
+        nueva_empresa = Empresa(
+            nombre=nombre,
+            clasificacion=clasificacion,
+            zona=zona,
+            ubicacion=ubicacion,
+            descripcion=descripcion,
+            rango_precios=rango_precios,
+            url=url_empresa,
+            imagen_filename=filename,
+            emprendedor_id=emprendedor.id
+        )
 
-            # Guardamos en la carpeta Empresas/
-            ruta_guardado = os.path.join(app.static_folder, 'Empresas', nuevo_nombre)
-            imagen.save(ruta_guardado)
-            imagen_filename = nuevo_nombre
+        db.session.add(nueva_empresa)
+        db.session.commit()
 
-            nueva_empresa = Empresa(
-                nombre_emprendimiento=nombre_emprendimiento,
-                nit=nit,
-                clasificacion=clasificacion,
-                zona=zona,
-                ubicacion=ubicacion,
-                descripcion=descripcion,
-                rango_precios=rango_precios,
-                url=url_empresa,
-                imagen_filename=imagen_filename,
-                emprendedor_id=emprendedor.id
-            )
+        # Auditoría
+        log = LogAccion(
+            accion="Creación de Empresa",
+            entidad_id=nueva_empresa.id,
+            detalles=f"El emprendedor {emprendedor.id} registró la empresa '{nombre}'."
+        )
+        db.session.add(log)
+        db.session.commit()
 
-            db.session.add(nueva_empresa)
-            db.session.commit()
+        flash('Tu empresa ha sido registrada correctamente.', 'success')
+        return redirect(url_for('emprendedor_dashboard'))
 
-            # Auditoría
-            log = LogAccion(
-                accion="Creación de Empresa",
-                entidad_id=nueva_empresa.id,
-                detalles=f"El emprendedor {emprendedor.id} registró la empresa '{nombre_emprendimiento}'."
-            )
-            db.session.add(log)
-            db.session.commit()
-
-            flash('Tu empresa ha sido registrada correctamente.', 'success')
-            return redirect(url_for('emprendedor_dashboard'))
-
-        return render_template('Emprededores/registrar_empresa.html', emprendedor=emprendedor)
+    return render_template('Emprendedores/registrar_empresa.html', emprendedor=emprendedor)
 
 @app.route('/editar_empresa/<int:id>', methods=['POST'])
 def editar_empresa(id):
@@ -931,4 +921,5 @@ def comida(categoria):
                            empresas=empresas,
                            username=username,
                            role=role)
+
 
