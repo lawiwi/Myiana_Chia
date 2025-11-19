@@ -627,7 +627,7 @@ def admin_dashboard():
     # --- Datos para emprendedores ---
     empresa = Empresa.query.all()
     emprendedores = Emprendedor.query.all()
-    planes_posibles = ['Sin Plan','Valvanera', 'Castillo Marroquin', 'Diosa chia']
+    planes_posibles = ['Sin Plan','Valvanera', 'Castillo Marroquin', 'Diosa Chia']
 
     logs = LogAccion.query.order_by(LogAccion.fecha.desc()).all()
 
@@ -940,6 +940,7 @@ def comida(categoria):
                            empresas=empresas,
                            username=username,
                            role=role)
+
 
 
 
