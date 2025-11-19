@@ -410,9 +410,19 @@ def registrar_empresa():
 
         # 🌟 SUBIR A CLOUDINARY
         imagen_url = None
+
         if imagen and imagen.filename:
-            upload_result = cloudinary.uploader.upload(imagen)
-            imagen_url = upload_result.get("secure_url")   # URL PUBLICA
+            try:
+                upload_result = cloudinary.uploader.upload(
+                    imagen,
+                    folder="myiana_empresas"   # opcional, pero ayuda
+                )
+                print("CLOUDINARY RESPONSE:", upload_result)  # Log en Render
+                imagen_url = upload_result.get("secure_url")
+
+            except Exception as e:
+                print("ERROR SUBIENDO A CLOUDINARY:", e)
+                flash("Hubo un error al subir la imagen.", "danger")
 
         # Crear empresa AUN SI NO HAY IMAGEN
         nueva_empresa = Empresa(
