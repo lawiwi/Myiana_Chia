@@ -11,3 +11,4 @@ MarkupSafe>=2.1
 click>=8.1
 SQLAlchemy>=2.0
 psycopg2-binary
+cloudinary
