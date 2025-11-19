@@ -192,7 +192,7 @@
 
       contenedor.innerHTML = data.map(lugar => `
         <div class="store-card">
-          <img src="${lugar.imagen}" alt="${lugar.nombre}" class="img-uniforme">
+          <img src="${lugar.imagen_filename}" class="img-uniforme">
           <h3>${lugar.nombre}</h3>
           <p>${lugar.descripcion}</p>
           <a href="${lugar.url}" target="_blank" class="btn btn-primary">Visitar</a>
@@ -222,4 +222,5 @@
   }
 </script>
 {% endblock %}
+
 
