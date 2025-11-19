@@ -8,6 +8,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 from sqlalchemy import func
 from werkzeug.utils import secure_filename
+import cloudinary
+import cloudinary.uploader
 load_dotenv()
 
 app = Flask(__name__, template_folder='Templates')
@@ -20,6 +22,10 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+cloudinary.config(
+    cloudinary_url=os.getenv("CLOUDINARY_URL")
+)
 # Session en filesystem (útil para debug y Deploy básicos)
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
@@ -370,6 +376,8 @@ def visitas_por_dia_semana(empresa_id, dia):
         'values': visitas_semanales[::-1]
     })
 
+
+
 @app.route('/registrar_empresa', methods=['GET', 'POST'])
 def registrar_empresa():
     user_id = session.get('user_id')
@@ -384,15 +392,15 @@ def registrar_empresa():
         flash('No se encontró el perfil del emprendedor.', 'danger')
         return redirect(url_for('login'))
 
-    # Verificar si ya tiene empresa
     empresa_existente = Empresa.query.filter_by(emprendedor_id=emprendedor.id).first()
     if empresa_existente:
         flash('Ya tienes una empresa registrada.', 'info')
         return redirect(url_for('emprendedor_dashboard'))
 
     if request.method == 'POST':
-        nombre = request.form.get('nombre')
+        nombre_emprendimiento = request.form.get('nombre_emprendimiento')
         clasificacion = request.form.get('clasificacion')
+        nit = request.form.get('nit')
         zona = request.form.get('zona')
         ubicacion = request.form.get('ubicacion')
         descripcion = request.form.get('descripcion')
@@ -400,33 +408,33 @@ def registrar_empresa():
         url_empresa = request.form.get('url')
         imagen = request.files.get('imagen')
 
-        # Guardar imagen
-        filename = None
+        # 🌟 SUBIR A CLOUDINARY
+        imagen_url = None
         if imagen and imagen.filename:
-            filename = secure_filename(imagen.filename)
-            upload_path = os.path.join(app.static_folder, 'uploads', filename)
-            imagen.save(upload_path)
+            upload_result = cloudinary.uploader.upload(imagen)
+            imagen_url = upload_result.get("secure_url")   # URL PUBLICA
 
+        # Crear empresa AUN SI NO HAY IMAGEN
         nueva_empresa = Empresa(
-            nombre=nombre,
+            nombre_emprendimiento=nombre_emprendimiento,
+            nit=nit,
             clasificacion=clasificacion,
             zona=zona,
             ubicacion=ubicacion,
             descripcion=descripcion,
             rango_precios=rango_precios,
             url=url_empresa,
-            imagen_filename=filename,
+            imagen_filename=imagen_url,
             emprendedor_id=emprendedor.id
         )
 
         db.session.add(nueva_empresa)
         db.session.commit()
 
-        # Auditoría
         log = LogAccion(
             accion="Creación de Empresa",
             entidad_id=nueva_empresa.id,
-            detalles=f"El emprendedor {emprendedor.id} registró la empresa '{nombre}'."
+            detalles=f"El emprendedor {emprendedor.id} registró la empresa '{nombre_emprendimiento}'."
         )
         db.session.add(log)
         db.session.commit()
@@ -434,7 +442,8 @@ def registrar_empresa():
         flash('Tu empresa ha sido registrada correctamente.', 'success')
         return redirect(url_for('emprendedor_dashboard'))
 
-    return render_template('Emprendedores/registrar_empresa.html', emprendedor=emprendedor)
+    # GET
+    return render_template('Emprededores/registrar_empresa.html', emprendedor=emprendedor)
 
 @app.route('/editar_empresa/<int:id>', methods=['POST'])
 def editar_empresa(id):
@@ -921,5 +930,4 @@ def comida(categoria):
                            empresas=empresas,
                            username=username,
                            role=role)
-
 
