@@ -119,7 +119,7 @@
     <article class="card-horizontal" data-zona="{{ e.zona or '' }}" data-precio="{{ e.rango_precios or '' }}" data-nombre="{{ e.nombre_emprendimiento|lower }}">
       <a href="{{ url_for('ver_emprendimiento', id=e.id) }}" class="card-link" title="Ver {{ e.nombre_emprendimiento }}">
         <img class="card-img" alt="{{ e.nombre_emprendimiento }}"
-             src="{{ url_for('static', filename='Empresas/' ~ e.imagen_filename) if e.imagen_filename else url_for('static', filename='Imagenes/placeholder.png') }}">
+             src="{{ empresa.imagen_filename }}" alt="Imagen">
       </a>
 
       <div class="card-info">
@@ -462,4 +462,5 @@ document.querySelectorAll('.visit-btn').forEach(btn => {
   align-items: center;
   margin-top: 12px;
 }
+
 
